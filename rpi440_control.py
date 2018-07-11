@@ -6,7 +6,7 @@ Command and control script for PulsON 440 via Pi.
 # Import the required modules
 import sys
 import argparse
-from pulson440 import PulsON440
+from pulson440_skeleton import PulsON440
 
 def parse_args(args):
     """

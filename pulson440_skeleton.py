@@ -73,7 +73,6 @@ class PulsON440:
             self.sock.bind((self.udp_ip_host, self.udp_port))
         except:
             print("Failed to connect to radar!\n")
-            exit()
         
     def read_config_file(self, config_file="radar_settings.cfg"):
         """

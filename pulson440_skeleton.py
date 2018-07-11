@@ -15,22 +15,25 @@ from constants import SPEED_OF_LIGHT, MAX_PACKET_SIZE, CONTINUOUS_SCAN, \
 MESSAGE_ID = "\x00\x01" # Message ID; static since only 1 radar is presumed
 
 # Radar messages types; refer to API for details
-MRM_SET_CONFIG_REQUEST = "\x10\x01"
-MRM_SET_CONFIG_CONFIRM = "\x11\x01"
-MRM_GET_CONFIG_REQUEST = "\x10\x02"
-MRM_GET_CONFIG_CONFIRM = "\x11\x02"
-MRM_CONTROL_REQUEST = "\x10\x03"
-MRM_CONTROL_CONFIRM = "\x11\x03"
+# !!!
+MRM_SET_CONFIG_REQUEST = ""
+MRM_SET_CONFIG_CONFIRM = ""
+MRM_GET_CONFIG_REQUEST = ""
+MRM_GET_CONFIG_CONFIRM = ""
+MRM_CONTROL_REQUEST = ""
+MRM_CONTROL_CONFIRM = ""
 
 # Specific recommended radar configurations
 REC_SCAN_RES = 32 # Scan resolution (bins)
 REC_ANTENNA_MODE = 2 # Transmit/receive configuration of antennas
 REC_PERSIST_FLAG = 1 # Configuration persistence flag
+REC_TRANSMIT_GAIN = 63 # Transmit gain of the radar
+
 
 # Default user settings
 # !!!
 DT_0 = 10 # Path delay through antennas (ns)
-
+SCAN_START = 0
 # Status and control
 # TIP A control and status files are recommended to provide traceability
 CONTROL_FILE_NAME = "control"
@@ -52,6 +55,7 @@ class PulsON440:
         TIP Check and assign defaults as you see fit.
         """
         # !!!
+        
         self.udp_ip_host = udp_ip_host
         self.udp_ip_radar = udp_ip_radar
         self.udp_port = udp_port
@@ -74,15 +78,33 @@ class PulsON440:
         except:
             print("Failed to connect to radar!\n")
         
-    def read_config_file(self, config_file="radar_settings.cfg"):
+    def read_config_file(self, config_file="radar_settings.txt"):
         """
         Read user specified radar configuration file.
         TIP Recommend that your configuration file format readable and editable
         from a terminal.
         """
         # !!!
+        f = open("radar_settings.txt", "r")
+        nextLine = f.readLine()
+        SCAN_START = hex(int(nextLine[nextLine.index(" ") + 1:nextLine.len()]))
+        nextLine = f.readLine()
+        SCAN_END = hex(int(nextLine[nextLine.index(" ") + 1:nextLine.len()]))
+        nextLine = f.readLine()
+        SCAN_RESOLUTION = hex(int(nextLine[nextLine.index(" ") + 1:nextLine.len()]))
+        nextLine = f.readLine()
+        BASE_INTEGRATION_INDEX = hex(int(nextLine[nextLine.index(" ") + 1:nextLine.len()]))
+        nextLine = f.readLine()
+        ANTENNA_MODE = hex(int(nextLine[nextLine.index(" ") + 1:nextLine.len()]))
+        nextLine = f.readLine()
+        TRANSMIT_GAIN = hex(int(nextLine[nextLine.index(" ") + 1:nextLine.len()]))
+        nextLine = f.readLine()
+        CODE_CHANNEL = hex(int(nextLine[nextLine.index(" ") + 1:nextLine.len()]))
+        nextLine = f.readLine()
+        PERSIST_FLAG = hex(int(nextLine[nextLine.index(" ") + 1:nextLine.len()]))
         
-    def settings_to_config(self):
+        
+    """def settings_to_config(self):
         """
         Translate user settings into radar configuration.
         TIP Whatever radar configuration settings you expose to the user via, 
@@ -98,7 +120,7 @@ class PulsON440:
                                 math.floor(scan_start / DT_MIN))
         scan_stop = N_bin * T_BIN + scan_start / 1000
         scan_stop = math.floor(1000 * DT_MIN * 
-                               math.ceil(scan_stop / DT_MIN))
+                               math.ceil(scan_stop / DT_MIN))"""
         
     def get_radar_config(self):
         """

@@ -15,7 +15,6 @@ from constants import SPEED_OF_LIGHT, MAX_PACKET_SIZE, CONTINUOUS_SCAN, \
 MESSAGE_ID = "\x00\x01" # Message ID; static since only 1 radar is presumed
 
 # Radar messages types; refer to API for details
-# !!!
 MRM_SET_CONFIG_REQUEST = "\x10\x01"
 MRM_SET_CONFIG_CONFIRM = "\x11\x01"
 MRM_GET_CONFIG_REQUEST = "\x10\x02"

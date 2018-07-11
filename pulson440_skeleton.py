@@ -8,6 +8,7 @@ PulsON 440 radar command and control class.
 import math
 import numpy as np
 import socket
+import io
 from constants import SPEED_OF_LIGHT, MAX_PACKET_SIZE, CONTINUOUS_SCAN, \
     STOP_SCAN, DT_MIN, T_BIN, DN_BIN, SEG_NUM_BINS
 
@@ -85,26 +86,25 @@ class PulsON440:
         from a terminal.
         """
         # !!!
-        f = open("radar_settings.txt", "r")
-        nextLine = f.readLine()
-        SCAN_START = hex(int(nextLine[nextLine.index(" ") + 1:nextLine.len()]))
-        nextLine = f.readLine()
-        SCAN_END = hex(int(nextLine[nextLine.index(" ") + 1:nextLine.len()]))
-        nextLine = f.readLine()
-        SCAN_RESOLUTION = hex(int(nextLine[nextLine.index(" ") + 1:nextLine.len()]))
-        nextLine = f.readLine()
-        BASE_INTEGRATION_INDEX = hex(int(nextLine[nextLine.index(" ") + 1:nextLine.len()]))
-        nextLine = f.readLine()
-        ANTENNA_MODE = hex(int(nextLine[nextLine.index(" ") + 1:nextLine.len()]))
-        nextLine = f.readLine()
-        TRANSMIT_GAIN = hex(int(nextLine[nextLine.index(" ") + 1:nextLine.len()]))
-        nextLine = f.readLine()
-        CODE_CHANNEL = hex(int(nextLine[nextLine.index(" ") + 1:nextLine.len()]))
-        nextLine = f.readLine()
-        PERSIST_FLAG = hex(int(nextLine[nextLine.index(" ") + 1:nextLine.len()]))
+        f = open("radar_settings.txt")
+        nextLine = f.readline()
+        SCAN_START = hex(int(nextLine[nextLine.index(" ") + 1:nextLine.__len__()]))
+        nextLine = f.readline()
+        SCAN_END = hex(int(nextLine[nextLine.index(" ") + 1:nextLine.__len__()]))
+        nextLine = f.readline()
+        SCAN_RESOLUTION = hex(int(nextLine[nextLine.index(" ") + 1:nextLine.__len__()]))
+        nextLine = f.readline()
+        BASE_INTEGRATION_INDEX = hex(int(nextLine[nextLine.index(" ") + 1:nextLine.__len__()]))
+        nextLine = f.readline()
+        ANTENNA_MODE = hex(int(nextLine[nextLine.index(" ") + 1:nextLine.__len__()]))
+        nextLine = f.readline()
+        TRANSMIT_GAIN = hex(int(nextLine[nextLine.index(" ") + 1:nextLine.__len__()]))
+        nextLine = f.readline()
+        CODE_CHANNEL = hex(int(nextLine[nextLine.index(" ") + 1:nextLine.__len__()]))
+        nextLine = f.readline()
+        PERSIST_FLAG = hex(int(nextLine[nextLine.index(" ") + 1:nextLine.__len__()]))
         
-        
-    """def settings_to_config(self):
+    def settings_to_config(self):
         """
         Translate user settings into radar configuration.
         TIP Whatever radar configuration settings you expose to the user via, 
@@ -120,7 +120,7 @@ class PulsON440:
                                 math.floor(scan_start / DT_MIN))
         scan_stop = N_bin * T_BIN + scan_start / 1000
         scan_stop = math.floor(1000 * DT_MIN * 
-                               math.ceil(scan_stop / DT_MIN))"""
+                               math.ceil(scan_stop / DT_MIN))
         
     def get_radar_config(self):
         """

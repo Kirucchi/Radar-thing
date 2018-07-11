@@ -16,6 +16,12 @@ MESSAGE_ID = "\x00\x01" # Message ID; static since only 1 radar is presumed
 
 # Radar messages types; refer to API for details
 # !!!
+MRM_SET_CONFIG_REQUEST = ""
+MRM_SET_CONFIG_CONFIRM = ""
+MRM_GET_CONFIG_REQUEST = ""
+MRM_GET_CONFIG_CONFIRM = ""
+MRM_CONTROL_REQUEST = ""
+MRM_CONTROL_CONFIRM = ""
 
 # Specific recommended radar configurations
 REC_SCAN_RES = 32 # Scan resolution (bins)

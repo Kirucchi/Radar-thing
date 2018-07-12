@@ -7,7 +7,7 @@ Constants module
 SPEED_OF_LIGHT = 299792458 # m/s
 
 # Communication protocol constants
-MAX_PACKET_SIZE = 1500 # (bytes)
+MAX_PACKET_SIZE = 4096 # (bytes)
 CONTINUOUS_SCAN = 65535 # Scan count setting to enable continuous scans
 STOP_SCAN = 0 # Scan count setting to stop scans
 

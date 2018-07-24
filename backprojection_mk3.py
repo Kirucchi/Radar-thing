@@ -17,21 +17,19 @@ data = pickle.load(f)
 
 size = 500 # number of pixels per axis of the image, change to alter resolution
 
-'''
-Returns the distance(range) between the radar and a specific location in the 3D cartesian coordinate plane
-'''
+
+# Returns the distance(range) between the radar and a specific location in the 3D cartesian coordinate plane
+
 def get_range(radar_xpos, radar_ypos, radar_zpos, img_x, img_y):
     return math.sqrt((radar_xpos - img_x)**2 + (radar_ypos - img_y)**2 + (radar_zpos)**2)
 
-'''
-Unfinished
-'''
+# Unfinished
+
 def edge_detection(arr):
     return
 
-'''
-Stores the positions of the UAS
-'''
+#Stores the positions of the UAS
+
 radar_x = []
 radar_y = []
 radar_z = []
@@ -45,15 +43,14 @@ pulses = data[1]
 range_bins = data[2][0]
 range_bin_d = (range_bins[int(len(range_bins)/2)+1] - range_bins[int(len(range_bins)/2)])/2
 
-...
-Initializes grid as a list of lists
-'''
+# Initializes grid as a list of lists
+
 pixel_values = list(list(0+0j for ii in np.arange(0, size)) for jj in np.arange(0, size))
 
-'''
-Calculating the color of each pixel in the image by iterating over all the pulses and summing the complex values within
-the correct range bins and ultimately storing the absolute value of the sum at the corresponding index in pixel_values 
-'''
+
+# Calculating the color of each pixel in the image by iterating over all the pulses and summing the complex values within
+# the correct range bins and ultimately storing the absolute value of the sum at the corresponding index in pixel_values 
+
 y = 2.5
 for ii in np.arange(0, size):
     print ("%d / %d" % (ii, size))

@@ -40,12 +40,12 @@ for position in data[0]:
     radar_y.append(position[1])
     radar_z.append(position[2])
 
-'''
+
 pulses = data[1]
 range_bins = data[2][0]
 range_bin_d = (range_bins[int(len(range_bins)/2)+1] - range_bins[int(len(range_bins)/2)])/2
-...
 
+...
 Initializes grid as a list of lists
 '''
 pixel_values = list(list(0+0j for ii in np.arange(0, size)) for jj in np.arange(0, size))

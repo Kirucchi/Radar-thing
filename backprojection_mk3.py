@@ -10,12 +10,14 @@ import numpy as np
 import math
 import timeit
 import argparse
+import sys
 import os
 from pulson440_constants import SPEED_OF_LIGHT
 
+'''
 start = timeit.default_timer()
 
-f = open(r"D:\Desktop\UAV-SAR\mandrill_no_aliasing_data.pkl", "rb")
+f = open(r"mandrill_no_aliasing_data.pkl", "rb")
 data = pickle.load(f)
 
 size = 500 # number of pixels per axis of the image, change to alter resolution
@@ -25,7 +27,7 @@ size = 500 # number of pixels per axis of the image, change to alter resolution
 
 def get_range(radar_xpos, radar_ypos, radar_zpos, img_x, img_y):
     return math.sqrt((radar_xpos - img_x)**2 + (radar_ypos - img_y)**2 + (radar_zpos)**2)
-
+'''
 '''
 Plots a picture that illustrates the edges of the source image
 @param   arr   the 2D array or list of lists that contains the sum magnitude of pulses
@@ -52,11 +54,12 @@ must be less than size, and start x/y must be greater or equal to zero.
 def partImage returns a 2d array of magnitudes from a range of pixels defined
 by the parameters
 '''
-def part_image(start_x, start_y, end_x, end_y):
+'''
+def partImage(start_x, start_y, end_x, end_y):
     xDiff = np.abs(end_x - start_x)
     yDiff = (end_y - start_y)
-    pulse_arr = list(list(0+0j for ii in np.arange(0, xDiff)) for jj in np.arange(0, yDiff))
-    mag_arr = list(list(0+0j for ii in np.arange(0, xDiff)) for jj in np.arange(0, yDiff))
+    pulseArr = list(list(0+0j for ii in np.arange(0, xDiff)) for jj in np.arange(0, yDiff))
+    magArr = list(list(0+0j for ii in np.arange(0, xDiff)) for jj in np.arange(0, yDiff))
     y = 2.5 - (5.0/size)*start_y
     for ii in np.arange(0, yDiff):
         x = -2.5 + (5.0/size)*start_x
@@ -65,11 +68,12 @@ def part_image(start_x, start_y, end_x, end_y):
                 distance = get_range(radar_x[kk], radar_y[kk], radar_z[kk], x, y)
                 ratio = (distance % range_bin_d) / range_bin_d
                 index = math.floor(distance/range_bin_d)
-                pulse_arr[ii][jj] += (pulses[kk][index]*(1-ratio) + pulses[kk][index+1]*(ratio))
-            mag_arr[ii][jj] = np.abs(pulse_arr[ii][jj])
+                pulseArr[ii][jj] += (pulses[kk][index]*(1-ratio) + pulses[kk][index+1]*(ratio))
+            magArr[ii][jj] = np.abs(pulseArr[ii][jj])
             x = x + 5.0/size
         y = y - 5.0/size
-    return mag_arr
+    return magArr
+'''
 
 def fourier_approach(pulses, range_axis, platform_pos, x_vec, y_vec, 
                      center_freq):
@@ -217,8 +221,13 @@ def main(args):
     # Save image
     plt.imsave(parsed_args.output, image)
 
-#Stores the positions of the UAS
+if __name__ == "__main__":
+    """
+    Standard Python alias for command line execution.
+    """
+    main(sys.argv[1:])
 '''
+#Stores the positions of the UAS
 radar_x = []
 radar_y = []
 radar_z = []
@@ -226,20 +235,13 @@ for position in data[0]:
     radar_x.append(position[0])
     radar_y.append(position[1])
     radar_z.append(position[2])
-
-
 pulses = data[1]
 range_bins = data[2][0]
 range_bin_d = (range_bins[int(len(range_bins)/2)+1] - range_bins[int(len(range_bins)/2)])/2
-
 # Initializes grid as a list of lists
-
 pixel_values = list(list(0+0j for ii in np.arange(0, size)) for jj in np.arange(0, size))
-
-
 # Calculating the color of each pixel in the image by iterating over all the pulses and summing the complex values within
 # the correct range bins and ultimately storing the absolute value of the sum at the corresponding index in pixel_values 
-
 y = 2.5
 for ii in np.arange(0, size):
     print ("%d / %d" % (ii, size))
@@ -256,7 +258,6 @@ for ii in np.arange(0, size):
           
 plt.imshow(pixel_values) # shows the image
 #plt.imshow(edge_detection(pixel_values,1500)) # prints the image after edge detection
-
 end = timeit.default_timer()
 print(end-start) # prints the run time
 '''

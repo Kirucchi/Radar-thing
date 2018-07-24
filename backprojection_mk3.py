@@ -20,8 +20,8 @@ size = 500 # number of pixels per axis of the image, change to alter resolution
 '''
 Returns the distance(range) between the radar and a specific location in the 3D cartesian coordinate plane
 '''
-def get_range(radar_pos, x, y): 
-    return math.sqrt((radar_pos - x)**2 + (radar_y-y)**2 + (radar_z)**2)
+def get_range(radar_xpos, radar_ypos, radar_zpos, img_x, img_y):
+    return math.sqrt((radar_xpos - img_x)**2 + (radar_ypos - img_y)**2 + (radar_zpos)**2)
 
 '''
 Unfinished

@@ -23,10 +23,26 @@ size = 500 # number of pixels per axis of the image, change to alter resolution
 def get_range(radar_xpos, radar_ypos, radar_zpos, img_x, img_y):
     return math.sqrt((radar_xpos - img_x)**2 + (radar_ypos - img_y)**2 + (radar_zpos)**2)
 
-# Unfinished
+'''
+Plots a picture that illustrates the edges of the source image
+@param   arr   the 2D array or list of lists that contains the sum magnitude of pulses
+@param   diff  the index that dictates how much contrast the algorithm is looking for
+'''
+def edge_detection(arr, diff):
+    ED = np.zeros((len(arr),len(arr[0]),3))
+    for row in range(len(arr)):
+        for col in range(len(arr[0])):
+           # if col is not len(arr[0]) - 1:
+            if (col < len(arr[0]) - 1 and np.absolute(arr[row][col]-arr[row][col+1]) > diff) or (row < len(arr) - 4 and np.absolute(arr[row][col]-arr[row+4][col]) > diff*4):
+                ED[row,col,0] = 255
+                ED[row,col,1] = 255
+                ED[row,col,2] = 255
+            else:
+                ED[row,col,0] = 1
+                ED[row,col,1] = 1
+                ED[row,col,2] = 1
+    return ED
 
-def edge_detection(arr):
-    return
 
 #Stores the positions of the UAS
 
@@ -66,6 +82,7 @@ for ii in np.arange(0, size):
     y = y - 5.0/size
           
 plt.imshow(pixel_values) # shows the image
+#plt.imshow(edge_detection(pixel_values,1500)) # prints the image after edge detection
 
 end = timeit.default_timer()
 print(end-start) # prints the run time

@@ -262,4 +262,7 @@ def main(args):
     end = timeit.default_timer()
     print(end-start) # prints the run time
     
-main(sys.argv[1])
+if len(sys.argv) == 1:
+    main(250)
+else:
+    main(sys.argv[1])

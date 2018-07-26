@@ -73,6 +73,32 @@ def partImage(start_x, start_y, end_x, end_y, pulses, range_bin_d, radar_x, rada
     return mag_arr
 
 '''
+returns the entropy value of an image
+'''
+def get_entropy(magnitude_array):
+    entropy_sum = 0
+    minMag = magnitude_array[0][0] 
+    maxMag = magnitude_array[0][0]
+    for yy in range(len(magnitude_array)):
+        for xx in range(len(magnitude_array[yy])):
+            curr_mag = magnitude_array[yy][xx]
+            #print("max: " + str(maxMag) + "----- min: " + str(minMag))
+            if curr_mag > maxMag:
+                maxMag = curr_mag
+            if curr_mag < minMag:
+                minMag = curr_mag
+    
+    magDiff = np.abs(maxMag - minMag)
+    #print("magDiff = " + str(magDiff))
+    for yy in range(len(magnitude_array)):
+        for xx in range(len(magnitude_array[yy])):
+            curr_mag_final = np.abs(magnitude_array[yy][xx] - minMag)/magDiff
+            if (curr_mag_final != 0):
+                #print("currMagFinal: " + str(curr_mag_final))
+                entropy_sum += curr_mag_final*np.log2(curr_mag_final)
+    return -1*entropy_sum
+
+'''
 def fourier_approach(pulses, range_axis, platform_pos, x_vec, y_vec, 
                      center_freq):
     """

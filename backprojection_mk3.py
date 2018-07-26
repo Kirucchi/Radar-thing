@@ -40,12 +40,16 @@ def edge_detection(arr, diff):
     return ED
 
 '''
+Displays a grayscaled version of arr which contains the values for the pixels
+'''
+def gray_scale(arr):
+    plt.imshow(arr, cmap='gray')
+'''
 x and y represent pixel coordinate. Difference between start and end x and start and end y
 must be less than size, and start x/y must be greater or equal to zero.
 def partImage returns a 2d array of magnitudes from a range of pixels defined
 by the parameters
 '''
-
 def partImage(start_x, start_y, end_x, end_y, pulses, range_bin_d, radar_x, radar_y, radar_z, size):
     xDiff = np.abs(end_x - start_x)
     yDiff = (end_y - start_y)
@@ -215,6 +219,17 @@ if __name__ == "__main__":
     """
     main(sys.argv[1:])
 '''
+
+def display_menu():
+    print("\nThe signals have been successfully processed, please indicate which version of image you would like to view:")
+    print("1. Original image")
+    print("2. Edge detected")
+    print("3. Grayscaled")
+    print("4. Quit")
+    choice = ""
+    while not (choice is "1" or choice is "2" or choice is "3" or choice is "4"):
+        choice = input("Choice: ")
+    return choice
     
 
 # Calculating the color of each pixel in the image by iterating over all the pulses and summing the complex values within
@@ -255,13 +270,23 @@ def main(args):
     pulses = data[1]
     range_bins = data[2][0]
     range_bin_d = (range_bins[int(len(range_bins)/2)+1] - range_bins[int(len(range_bins)/2)])/2   
-    img = np.reshape(linear_interp(pulses,range_bin_d,radar_x,radar_y,radar_z,size),(size,size))
-    plt.imshow(img) # shows the image
-    plt.show()
-    #plt.imshow(edge_detection(img,1500)) # prints the image after edge detection
-    end = timeit.default_timer()
-    print(end-start) # prints the run time
     
+    img = np.reshape(linear_interp(pulses,range_bin_d,radar_x,radar_y,radar_z,size),(size,size))
+    
+    choice = ""
+    while choice is not "4":
+        choice = display_menu()
+        if choice is "1":
+            plt.imshow(img)
+        elif choice is "2":
+            plt.imshow(edge_detection(img,1000))
+        elif choice is "3":
+            gray_scale(img)
+        if choice is not "4":
+            plt.show()
+    end = timeit.default_timer()1
+    print("\nProgram terminated, total run time = " + str(end-start))
+
 if len(sys.argv) == 1:
     main(250)
 else:

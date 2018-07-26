@@ -49,25 +49,28 @@ x and y represent pixel coordinate. Difference between start and end x and start
 must be less than size, and start x/y must be greater or equal to zero.
 def partImage returns a 2d array of magnitudes from a range of pixels defined
 by the parameters
+NOTE: keep resolution_multiplier value to 1 unless you know what you're doing
 '''
-def partImage(start_x, start_y, end_x, end_y, pulses, range_bin_d, radar_x, radar_y, radar_z, size):
-    xDiff = np.abs(end_x - start_x)
-    yDiff = (end_y - start_y)
-    pulseArr = list(list(0+0j for ii in np.arange(0, xDiff)) for jj in np.arange(0, yDiff))
-    magArr = list(list(0+0j for ii in np.arange(0, xDiff)) for jj in np.arange(0, yDiff))
+def partImage(start_x, start_y, end_x, end_y, pulses, range_bin_d, radar_x, radar_y, radar_z, size, resolution_multiplier):
+    resScalar = resolution_multiplier
+    xDiff = np.abs(end_x - start_x)*resScalar
+    yDiff = np.abs(end_y - start_y)*resScalar
+    pulse_arr = list(list(0+0j for ii in np.arange(0, xDiff)) for jj in np.arange(0, yDiff))
+    mag_arr = list(list(0+0j for ii in np.arange(0, xDiff)) for jj in np.arange(0, yDiff))
     y = 2.5 - (5.0/size)*start_y
     for ii in np.arange(0, yDiff):
+        print(str(ii) + "/" + str(yDiff))
         x = -2.5 + (5.0/size)*start_x
         for jj in np.arange(0, xDiff):
             for kk in np.arange(0, 100):
                 distance = get_range(radar_x[kk], radar_y[kk], radar_z[kk], x, y)
                 ratio = (distance % range_bin_d) / range_bin_d
                 index = math.floor(distance/range_bin_d)
-                pulseArr[ii][jj] += (pulses[kk][index]*(1-ratio) + pulses[kk][index+1]*(ratio))
-            magArr[ii][jj] = np.abs(pulseArr[ii][jj])
-            x = x + 5.0/size
-        y = y - 5.0/size
-    return magArr
+                pulse_arr[ii][jj] += (pulses[kk][index]*(1-ratio) + pulses[kk][index+1]*(ratio))
+            mag_arr[ii][jj] = np.abs(pulse_arr[ii][jj])
+            x = x + (5.0/(size*resScalar))
+        y = y - (5.0/(size*resScalar))
+    return mag_arr
 
 '''
 def fourier_approach(pulses, range_axis, platform_pos, x_vec, y_vec, 

@@ -1,4 +1,12 @@
-'''
+import matplotlib.pyplot as plt
+import pickle
+import numpy as np
+import math
+import timeit
+import argparse
+import sys
+import os
+
 def fourier_approach(pulses, range_axis, platform_pos, x_vec, y_vec, 
                      center_freq):
     """
@@ -147,4 +155,3 @@ if __name__ == "__main__":
     Standard Python alias for command line execution.
     """
     main(sys.argv[1:])
-'''

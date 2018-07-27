@@ -51,7 +51,7 @@ def partImage returns a 2d array of magnitudes from a range of pixels defined
 by the parameters
 NOTE: keep resolution_multiplier value to 1 unless you know what you're doing
 '''
-def partImage(start_x, start_y, end_x, end_y, pulses, range_bin_d, radar_x, radar_y, radar_z, size, resolution_multiplier):
+def part_image(start_x, start_y, end_x, end_y, pulses, range_bin_d, radar_x, radar_y, radar_z, size, resolution_multiplier):
     resScalar = resolution_multiplier
     xDiff = np.abs(end_x - start_x)*resScalar
     yDiff = np.abs(end_y - start_y)*resScalar

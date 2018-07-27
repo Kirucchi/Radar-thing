@@ -73,7 +73,10 @@ def partImage(start_x, start_y, end_x, end_y, pulses, range_bin_d, radar_x, rada
     return mag_arr
 
 '''
-returns the entropy value of an image
+returns entropy value of array of pixels in given image
+to compare images of different resolutions, you must scale 
+the image's entropy appropriately to to the ratio of one 
+image's resolution to the other image resolution
 '''
 def get_entropy(magnitude_array):
     entropy_sum = 0

@@ -1,0 +1,15 @@
+Position Data:
+  cd PulsOn_Code_New
+  python RTK_ Log.py [name of storage file]
+    data logging begins 
+  echo 1 > control_rtk
+    data logging ends
+  collect data from CoreFTP
+  
+Pulse Data:
+  cd PulsOn_Code_New
+  python pulson440_cotrol.py [name of storage file]
+    data logging beings
+  echo 1 > pulson440_control.py
+    data logging ends
+  collect data from core FTP

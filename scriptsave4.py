@@ -180,7 +180,13 @@ def extract_given_object():
             mini_array.append(position_array[contents4][contents3])
         final_result.append(np.array(mini_array))
     final_result = np.array(final_result)
-    return final_result
+    average = list()
+    for indexes in range(3):
+        sum = 0
+        for elements in range(len(final_result)):
+            sum += final_result[elements][indexes]
+        average.append(sum/len(final_result))
+    print(average)
 
 def extract_time_stamp2():
     array = list()
@@ -295,12 +301,6 @@ def create_SAR_image(pickle_file):
     radar_z = []
     for position in radar_positions:
         radar_z.append(position[1])
-        
-    plt.plot(radar_x)
-    plt.show()
-    plt.plot(radar_y)
-    plt.show()
-    plt.plot(radar_z)
     
     tempy = int(range_bins[len(range_bins)-1] - range_bins[0])/2
     tempx = -int(get_range(radar_x[0], radar_y[0], radar_z[0], radar_x[len(radar_x)-1], radar_y[len(radar_y)-1], radar_z[len(radar_z)-1]))/2

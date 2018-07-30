@@ -274,7 +274,18 @@ def average_5_pixels(x,y,abscxpls): #dont use
     return (abscxpls[x-2][y] + abscxpls[x-1][y] + abscxpls[x][y] + abscxpls[x+1][y] + abscxpls[x+2][y]) / 5.0
 
 def get_range(radar_xpos, radar_ypos, radar_zpos, img_x, img_y, img_z):
+    #print(img_x)
+    #print(img_y)
     return math.sqrt((radar_xpos - img_x)**2 + (radar_ypos - img_y)**2 + (radar_zpos - img_z)**2)
+
+def get_rangebin(pulse,dist,rangebin_width):
+    #print(rangebin_width/2)
+    true_bin = dist/(rangebin_width/2)
+    lower_bin = (int)(true_bin)
+    # print(lower_bin)
+    upper_bin = lower_bin + 1
+    sum_complex = pulse[lower_bin]*(upper_bin-true_bin)+pulse[upper_bin]*(true_bin-lower_bin)
+    return sum_complex
 
 def combine_all_arrays():
     pickle_file = list()
@@ -372,6 +383,43 @@ def time_align_interpolation():
         cxpls = cxpls[:index+1][:]
     return [cxpls,points]
 
+def create_SAR_image2(pickle_file):
+    start = timeit.default_timer()
+
+    radar_positions = pickle_file[0]
+    pulses = pickle_file[1]
+    range_bins = pickle_file[2]
+    range_bins = range_bins[0]
+    #print(range_bins)
+    radar_x = []
+    radar_y = []
+    radar_z = []
+    for position in radar_positions:
+        radar_x.append(position[0])
+        radar_y.append(position[1])
+        radar_z.append(position[2])
+    
+    num_pixels = 60
+    #flight_path_vec = radar_positions[(int)(len(radar_positions)-1)] - radar_positions[0]   
+    img_center = [0.0,0.0,0.0]
+    img_width = 6.0
+    img_height = 6.0
+    img = []
+    for y in np.arange(img_center[0]-img_width/2,img_center[0]+img_width/2,img_height/num_pixels):
+        for x in np.arange(img_center[1]-img_height/2,img_center[1]+img_height/2,img_width/num_pixels):
+            sum_complex = 0.0 + 0.0 * 1j
+            for i in range(len(pulses)):
+                dist = get_range(radar_x[i],radar_y[i],radar_z[i],x,-y,img_center[2])
+                #print(dist)
+                s = get_rangebin(pulses[i],dist,range_bins[1]-range_bins[0])
+                #print(s)
+                sum_complex += s
+            #print(sum_complex)
+            
+            img.append(np.absolute(sum_complex))
+    image = np.reshape(img,(num_pixels,num_pixels))
+    plt.imshow(image)
+    print(timeit.default_timer()-start)
 
 #create_SAR_image(combine_all_arrays())
 #show_image_determine_start_time()

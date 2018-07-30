@@ -166,7 +166,7 @@ def main(args):
             gray_scale(img)
         if choice is not "4":
             plt.show()
-    end = timeit.default_timer()1
+    end = timeit.default_timer()
     print("\nProgram terminated, total run time = " + str(end-start))
 
 if len(sys.argv) == 1:

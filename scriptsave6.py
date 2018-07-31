@@ -314,6 +314,60 @@ def time_align_interpolation():
 
 create_SAR_image(combine_all_arrays())
 
+
+def TAI_radar_entropy(shift_value):
+    #cxpls = complex pulses; strplat = start of platform pos; strrad = start radar time;
+    #stamprad = array of time stamps of radar; stamppla = array of time stamps of platform;
+    #r = stamprad; p = stamppla; cutcxpls and cutpltpos = cutoff pulse data;
+    #freqr = radar frequency and freqp = motion capture frequency; 
+    cxpls = extract_complex_pulse()
+    abscxpls = abs(cxpls)
+    pltpos = extract_platform_position()
+    
+    if eyeballing_time_start + shift_value < 0:
+        shift_value = -eyeballing_time_start
+    elif eyeballing_time_start + shift_value > len(abscxpls):
+        shift_value = len(abscxpls) - (eyeballing_time_start + 1)
+        
+    strplat = get_start_time_platform()
+    
+    strrad = eyeballing_time_start + shift_value
+    
+    stamprad = list(map(float,extract_time_stamp()))
+    stamppla = extract_time_stamp2()
+    r = np.array(stamprad).astype(float)
+    p = np.array(stamppla).astype(float)
+    cutcxpls = abscxpls[strrad:][:]
+    cutpltpos = pltpos[strplat:][:]
+    freqr = 1/(float(r[1]) - float(r[0])) * 1000
+    freqp = 1/(p[0][1] - p[0][0]) 
+    divide = float(freqp / freqr)
+    points = list()
+    points.append(pltpos[strplat])
+    n = 0
+    index = None
+    for elements in range(len(cutcxpls)):
+        floor = math.floor(divide * elements)
+        if floor + 1 < len(cutpltpos):
+            if divide * elements - floor > 0.5:
+                points.append(cutpltpos[floor+1])
+            else:
+                points.append(cutpltpos[floor])
+            '''
+            slope = (cutpltpos[floor+1] - cutpltpos[floor]).reshape(3,1)
+            vector_p = slope * (divide * elements) + cutpltpos[floor].reshape(3,1)
+            points.append(vector_p.reshape(1,3)[0])
+            '''
+        else:
+            if index == None:
+                index = n
+        n += 1
+    
+    cxpls = cxpls[strrad:][:]
+    if index != None:
+        cxpls = cxpls[:index+1][:]
+    return [cxpls,points]
+
 ###############################################################################################################
 def get_parabola():
     cxpls = extract_complex_pulse()

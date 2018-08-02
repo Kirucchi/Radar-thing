@@ -6,13 +6,13 @@ from pulson440_constants import SPEED_OF_LIGHT, T_BIN, DN_BIN
 import pandas
 import timeit
 import pickle
+import sys
 
 DT_0 = 10
 pulse_data = 'railTestDiagonal.pkl'
 platform_position_data = 'UASSAR4_rail_diagonal.csv'
 given_object = 'triangle.csv'
 
-size = 50
 eyeballing_time_start = 272
 eyeballing_end_time = 1400
 
@@ -246,32 +246,111 @@ def combine_all_arrays():
     pickle_file = np.array(pickle_file)
     return pickle_file
 
-def create_SAR_image(pickle_file,size):
-    start = timeit.default_timer()
+'''
+Plots a picture that illustrates the edges of the source image
+@param   arr   the 2D array or list of lists that contains the sum magnitude of pulses
+@param   diff  the index that dictates how much contrast the algorithm is looking for
+'''
+def edge_detection(arr, diff):
+    ED = np.zeros((len(arr),len(arr[0]),3))
+    for row in range(len(arr)):
+        for col in range(len(arr[0])):
+           # if col is not len(arr[0]) - 1:
+            if (col < len(arr[0]) - 1 and np.absolute(arr[row][col]-arr[row][col+1]) > diff) or (row < len(arr) - 4 and np.absolute(arr[row][col]-arr[row+4][col]) > diff*4):
+                ED[row,col,0] = 255
+                ED[row,col,1] = 255
+                ED[row,col,2] = 255
+            else:
+                ED[row,col,0] = 1
+                ED[row,col,1] = 1
+                ED[row,col,2] = 1
+    return ED
 
-    radar_positions = pickle_file[0]
-    pulses = pickle_file[1]
-    range_bins = pickle_file[2]
-    static_object = extract_given_object()
+'''
+Displays a grayscaled version of arr which contains the values for the pixels in plt
+'''
+def gray_scale(arr):
+    plt.imshow(arr, cmap='gray')
     
-    radar_x = []
-    for position in radar_positions:
-        radar_x.append(position[2])
-    radar_y = []
-    for position in radar_positions:
-        radar_y.append(position[0])
-    radar_z = []
-    for position in radar_positions:
-        radar_z.append(position[1])
-    center = [-0.5,1,0]
-    y = 3.5+center[2]
-    temp = 3.5
+'''
+x and y represent pixel coordinate. Difference between start and end x and start and end y
+must be less than size, and start x/y must be greater or equal to zero.
+def partImage returns a 2d array of magnitudes from a range of pixels defined
+by the parameters
+NOTE: keep resolution_multiplier value to 1 unless you know what you're doing
+'''
+def part_image(start_x, start_y, end_x, end_y, pulses, range_bin_d, radar_x, radar_y, radar_z, size, resolution_multiplier):
+    resScalar = resolution_multiplier
+    xDiff = np.abs(end_x - start_x)*resScalar
+    yDiff = np.abs(end_y - start_y)*resScalar
+    pulse_arr = list(list(0+0j for ii in np.arange(0, xDiff)) for jj in np.arange(0, yDiff))
+    mag_arr = list(list(0+0j for ii in np.arange(0, xDiff)) for jj in np.arange(0, yDiff))
+    y = 2.5 - (5.0/size)*start_y
+    for ii in np.arange(0, yDiff):
+        print(str(ii) + "/" + str(yDiff))
+        x = -2.5 + (5.0/size)*start_x
+        for jj in np.arange(0, xDiff):
+            for kk in np.arange(0, 100):
+                distance = get_range(radar_x[kk], radar_y[kk], radar_z[kk], x, y)
+                ratio = (distance % range_bin_d) / range_bin_d
+                index = math.floor(distance/range_bin_d)
+                pulse_arr[ii][jj] += (pulses[kk][index]*(1-ratio) + pulses[kk][index+1]*(ratio))
+            mag_arr[ii][jj] = np.abs(pulse_arr[ii][jj])
+            x = x + (5.0/(size*resScalar))
+        y = y - (5.0/(size*resScalar))
+    return mag_arr
+
+'''
+returns entropy value of array of pixels in given image
+to compare images of different resolutions, you must scale 
+the image's entropy appropriately to to the ratio of one 
+image's resolution to the other image resolution
+'''
+def get_entropy(magnitude_array):
+    entropy_sum = 0
+    minMag = magnitude_array[0][0] 
+    maxMag = magnitude_array[0][0]
+    for yy in range(len(magnitude_array)):
+        for xx in range(len(magnitude_array[yy])):
+            curr_mag = magnitude_array[yy][xx]
+            #print("max: " + str(maxMag) + "----- min: " + str(minMag))
+            if curr_mag > maxMag:
+                maxMag = curr_mag
+            if curr_mag < minMag:
+                minMag = curr_mag
+    
+    magDiff = np.abs(maxMag - minMag)
+    #print("magDiff = " + str(magDiff))
+    for yy in range(len(magnitude_array)):
+        for xx in range(len(magnitude_array[yy])):
+            curr_mag_final = np.abs(magnitude_array[yy][xx] - minMag)/magDiff
+            if (curr_mag_final != 0):
+                #print("currMagFinal: " + str(curr_mag_final))
+                entropy_sum += curr_mag_final*np.log2(curr_mag_final)
+    return -1*entropy_sum
+
+def display_menu():
+    print("\nThe signals have been successfully processed, please indicate which version of image you would like to view:")
+    print("1. Original image")
+    print("2. Edge detected")
+    print("3. Grayscaled")
+    print("4. Quit")
+    choice = ""
+    while not (choice is "1" or choice is "2" or choice is "3" or choice is "4"):
+        choice = input("Choice: ")
+    return choice
+
+# Calculating the color of each pixel in the image by iterating over all the pulses and summing the complex values within
+# the correct range bins and ultimately storing the absolute value of the sum at the corresponding index in pixel_values 
+def linear_interp(pulses,range_bins,radar_x,radar_y,radar_z,size,center,width,height):
+    #Initializes grid as a list of lists
+    y = height / 2 + center[1]
     pixel_values = np.zeros((size,size))
     range_bin = range_bins[1]-range_bins[0]
     first_range_bin = range_bins[0]
     distance_mat = np.zeros((size, size))
     for ii in range(size):
-        x = -3.5+center[1]
+        x = width * -1 /2 + center[0]
         print(str(ii)+"/"+str(size))
         for jj in range(size):
             for kk in range(len(radar_x)):
@@ -281,16 +360,45 @@ def create_SAR_image(pickle_file,size):
                 index = math.floor(distance / range_bin)
                 pixel_values[ii][jj] += (pulses[kk][index]*(1-ratio) + pulses[kk][index+1]*(ratio))
             pixel_values[ii][jj] = pixel_values[ii][jj]
-            x = x + temp/size
-        y = y - temp/size
+            x = x + width/size
+        y = y - height/size
+    return pixel_values
     
-    plt.imshow(np.abs(pixel_values))
-
+def create_SAR_image(pickle_file,size):
+    start = timeit.default_timer()
+    radar_positions = pickle_file[0]
+    pulses = pickle_file[1]
+    range_bins = pickle_file[2]
+    static_object = [-0.5,1,0] # should be extract_given_object()
+    
+    #Stores the positions of the UAS
+    radar_x = []
+    radar_y = []
+    radar_z = []
+    for position in radar_positions:
+        print(position)
+        radar_x.append(position[2])
+        radar_y.append(position[0])
+        radar_z.append(position[1])
+    img = np.abs(linear_interp(pulses,range_bins,radar_x,radar_y,radar_z,size,static_object,5.0,4.0))
+    
     with open('pixel_values', 'wb') as f:
-        pickle.dump(pixel_values, f)
+        pickle.dump(img, f)
         
+    choice = ""
+    while choice is not "4":
+        choice = display_menu()
+        if choice is "1":
+            plt.imshow(img)
+        elif choice is "2":
+            ED_val = input("Please input your desired edge detection index 1000-5000 (the higher\nthe index, the more difficult it is to detect edges, but the less noise): ")
+            plt.imshow(edge_detection(img,(int)(ED_val)))
+        elif choice is "3":
+            gray_scale(img)
+        if choice is not "4":
+            plt.show()
     end = timeit.default_timer()
-    print(end-start)
+    print("\nProgram terminated, total run time = " + str(end-start))
     
 def intersect():
     cxpls = extract_complex_pulse()
@@ -333,7 +441,7 @@ def time_align_interpolation():
                 index = n
         n += 1
     endrad = eyeballing_end_time - strrad
-    print(endrad)
+    #print(endrad)
     cxpls = cxpls[strrad:][:]
     if index != None:
         cxpls = cxpls[:index+1][:]
@@ -365,9 +473,14 @@ def test():
     plt.plot(final_result)
     return final_result
 
-def kiryumain():
-    create_SAR_image(combine_all_arrays(),size)
+def main(args):
+    create_SAR_image(combine_all_arrays(),args)
+    #show_image_determine_start_time()
 
+if len(sys.argv) == 1:
+    main(60)
+else:
+    main(sys.argv[1])
 ###############################################################################################################
 def get_parabola():
     cxpls = extract_complex_pulse()

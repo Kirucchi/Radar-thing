@@ -365,8 +365,9 @@ def test():
     plt.plot(final_result)
     return final_result
 
-#show_image_determine_start_time()
-create_SAR_image(combine_all_arrays(),size)
+def kiryumain():
+    create_SAR_image(combine_all_arrays(),size)
+
 ###############################################################################################################
 def get_parabola():
     cxpls = extract_complex_pulse()

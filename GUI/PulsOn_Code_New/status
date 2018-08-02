@@ -1,0 +1,57 @@
+2018-04-10 23:38:28 - Reading user settings file...
+2018-04-10 23:38:28 - Successfully read user configuration file!
+	dT_0: 10.000000
+	range_start: 3.000000
+	range_stop: 15.000000
+	tx_gain_ind: 63.000000
+	pii: 13.000000
+	code_channel: 0.000000
+2018-04-10 23:38:28 - Trying to connect to radar...
+2018-04-10 23:38:28 - Connected to radar!
+2018-04-10 23:38:28 - Requesting radar configuration...
+2018-04-10 23:38:28 - Received radar configuration!
+	node_id: 1
+	scan_start: 30012
+	scan_stop: 112043
+	scan_res: 32
+	pii: 13
+	seg_1_samp: 0
+	seg_2_samp: 0
+	seg_3_samp: 0
+	seg_4_samp: 0
+	seg_1_int: 0
+	seg_2_int: 0
+	seg_3_int: 0
+	seg_4_int: 0
+	ant_mode: 2
+	tx_gain_ind: 63
+	code_channel: 0
+	persist_flag: 0
+2018-04-10 23:38:28 - Setting radar configuration...
+2018-04-10 23:38:28 - Successfully set radar configuration!
+2018-04-10 23:38:28 - Requesting radar configuration...
+2018-04-10 23:38:28 - Received radar configuration!
+	node_id: 1
+	scan_start: 30012
+	scan_stop: 112043
+	scan_res: 32
+	pii: 13
+	seg_1_samp: 0
+	seg_2_samp: 0
+	seg_3_samp: 0
+	seg_4_samp: 0
+	seg_1_int: 0
+	seg_2_int: 0
+	seg_3_int: 0
+	seg_4_int: 0
+	ant_mode: 2
+	tx_gain_ind: 63
+	code_channel: 0
+	persist_flag: 0
+2018-04-10 23:38:28 - Starting collection mode...
+2018-04-10 23:38:28 - Requesting radar scan with 65535 scans...
+2018-04-10 23:38:28 - Successfully sent radar scan request!
+2018-04-10 23:38:28 - Reading data from the radar...
+2018-04-10 23:38:47 - Successfully read all the data!
+2018-04-10 23:38:47 - Requesting radar scan with 0 scans...
+2018-04-10 23:38:47 - Successfully sent radar scan request!

@@ -216,7 +216,7 @@ def extract_time_stamp2():
     time_array = np.array(time_array).astype(np.float)
     return time_array
 
-def get_start_time_platform():
+def get_start_time_platform(locations):
     '''
     pltpos = extract_platform_position()
     mini = 2 ** 63 -1
@@ -233,8 +233,9 @@ def get_start_time_platform():
              start_time = n+100
          n += 1 
     return start_time
-    '''
+    
     pltpos = extract_platform_position()
+    
     plat_var = np.mean(np.diff(pltpos[0:1000, 2]))
     start_time = None
     n = 0
@@ -242,7 +243,75 @@ def get_start_time_platform():
          if abs(pltpos[n, 2] - pltpos[n+1, 2]) **2 > 5*plat_var:
              start_time = n
          n += 1 
-    return start_time
+    return start_time '''
+    locations_dist = np.array(range(len(locations)-1))
+    for i in range(len(locations)-1):
+        #print(locations[i][0])
+        #print(type(locations_dist[i]))
+        #print(type(get_range(locations[i][0],locations[i][1],locations[i][2],locations[i+1][0],locations[i+1][1],locations[i+1][2])))
+        locations_dist[i] = get_range_tweaked(locations[i][0],locations[i][1],locations[i][2],locations[i+1][0],locations[i+1][1],locations[i+1][2])
+        #print(locations_dist[i])
+    dist_avg = np.mean(np.abs(locations_dist))
+    #print(dist_avg)
+    start_plat_index = None
+    i = 0
+    while start_plat_index is None:
+        if np.abs(locations_dist[i]) > dist_avg:
+            start_plat_index = i+1
+        i += 1
+    return start_plat_index
+    
+
+def get_end_time_platform(locations):
+    locations_dist = np.array(range(len(locations)-1))
+    for i in range(len(locations)-2):
+        locations_dist[i] = get_range(locations[i][0],locations[i][1],locations[i][2],locations[i+1][0],locations[i+1][1],locations[i+1][2])
+    dist_avg = np.mean(np.abs(locations_dist))
+    end_plat_index = None
+    i = len(locations_dist) - 1
+    while end_plat_index is None:
+        if np.abs(locations_dist[i]) > dist_avg:
+            end_plat_index = i+1
+        i -= 1
+    return end_plat_index
+
+def get_start_time_radar(pulses):
+    sum_pulse_mags = np.array(range(len(pulses)))
+    #print(np.ndim(sum_pulse_mags))
+    j = 0
+    #print(np.sum(pulses[0]))
+    for p in pulses:
+        sum_pulse_mags[j] = np.sum(p)
+        j += 1
+    delta_mag = np.diff(sum_pulse_mags)
+    average_delta_mag = np.mean(np.abs(delta_mag))
+    start_pulse_index = None
+    i = 0
+    while start_pulse_index is None:
+        if np.abs(delta_mag[i]) > average_delta_mag:
+            start_pulse_index = i + 1
+        i += 1
+    #print(start_pulse_index)
+    return start_pulse_index
+
+def get_end_time_radar(pulses):
+    sum_pulse_mags = np.array(range(len(pulses)))
+    #print(np.ndim(sum_pulse_mags))
+    j = 1
+    #print(np.sum(pulses[0]))
+    for p in pulses:
+        sum_pulse_mags[len(sum_pulse_mags)-j] = np.sum(p)
+        j += 1
+    delta_mag = np.diff(sum_pulse_mags)
+    average_delta_mag = np.mean(np.abs(delta_mag))
+    end_pulse_index = None
+    i = len(delta_mag) - 1
+    while end_pulse_index is None:
+        if np.abs(delta_mag[i]) > average_delta_mag:
+            end_pulse_index = i
+        i -= 1
+   #print(end_pulse_index)
+    return end_pulse_index
 
 def get_range(radar_xpos, radar_ypos, radar_zpos, img_x, img_y, img_z):
     return math.sqrt((radar_xpos - img_x)**2 + (radar_ypos - img_y)**2 + (radar_zpos - img_z)**2)

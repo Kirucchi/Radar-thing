@@ -228,12 +228,12 @@ def get_entropy(magnitude_array):
                 entropy_sum += curr_mag_final*np.log2(curr_mag_final)
     return -1*entropy_sum
 
-def testEntropy(deviation, step):
+def testEntropy(deviation, step, test_resolution):
     entropyArr = list()
-    combineArr = get_image_array(0, 100)
+    combineArr = get_image_array(0, resolution)
     entropyArr.append(get_entropy(combineArr))
     for ii in np.arange(-deviation, deviation, step):
-        combineArr = get_image_array(ii, 100)
+        combineArr = get_image_array(ii, test_resolution)
         entropyArr.append(get_entropy(combineArr))
     
     bestIndex = 0

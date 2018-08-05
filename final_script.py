@@ -5,6 +5,15 @@ import numpy as np
 import pandas
 import math
 
+radar_data = unpack('UASSAR3_Saturday_pseudoflight_1')
+platform_position_data = 'uassar3_saturday_pseudoflight_1.csv'
+given_object = 'uassar3 triangle 3.csv'
+meters = 3
+eyeballing_start_time = 160
+eyeballing_end_time = 750
+time_offset = 12
+range_offset = 0.2
+
 def extract_platform_position():
     array = list()
     new_array = list()
@@ -135,69 +144,114 @@ def extract_time_stamp():
 def get_range(radar_xpos, radar_ypos, radar_zpos, img_x, img_y, img_z):
     return math.sqrt((radar_xpos - img_x)**2 + (radar_ypos - img_y)**2 + (radar_zpos - img_z)**2)
 
-radar_data = unpack('UASSAR3_Saturday_pseudoflight_1')
-platform_position_data = 'uassar3_saturday_pseudoflight_1.csv'
-given_object = 'uassar3 triangle 3.csv'
-meters = 3
-size = 500
-eyeballing_start_time = 160
-eyeballing_end_time = 750
-time_offset = 12
-range_offset = 0.2
+def get_image_array(time_shift, size):
+    time_offset =  time_offset + time_shift
 
-time_stamps = radar_data['time_stamp']
-scan_data = radar_data['scan_data']
-range_bins = radar_data['range_bins']
+    time_stamps = radar_data['time_stamp']
+    scan_data = radar_data['scan_data']
+    range_bins = radar_data['range_bins']
 
-scan_data = np.array(scan_data).astype(float)
-#optional rcs need button for this 
-'''
-for elements in range(len(scan_data)):
-    for elements2 in range(int(len(scan_data[0])*0.75)):
-        scan_data[elements][elements2] = scan_data[elements][elements2] * ((range_bins[elements2] - range_offset) **4.0)
-'''
-plat_pos = extract_platform_position()
+    scan_data = np.array(scan_data).astype(float)
+    #optional rcs need button for this 
+    '''
+    for elements in range(len(scan_data)):
+        for elements2 in range(int(len(scan_data[0])*0.75)):
+            scan_data[elements][elements2] = scan_data[elements][elements2] * ((range_bins[elements2] - range_offset) **4.0)
+    '''
+    plat_pos = extract_platform_position()
 
-#plt.figure()
-#plt.imshow(20 * np.log10(np.abs(scan_data)),extent=[range_bins[0],range_bins[-1],(time_stamps[-1]-time_stamps[0])/1000,0],aspect = 'auto')
+    #plt.figure()
+    #plt.imshow(20 * np.log10(np.abs(scan_data)),extent=[range_bins[0],range_bins[-1],(time_stamps[-1]-time_stamps[0])/1000,0],aspect = 'auto')
 
-#plt.figure()
-#plt.plot(plat_pos)
-plat_pos = linear_interp_nan(extract_time_stamp(),plat_pos)[1]
-refl_pos = extract_given_object()
+    #plt.figure()
+    #plt.plot(plat_pos)
+    plat_pos = linear_interp_nan(extract_time_stamp(),plat_pos)[1]
+    refl_pos = extract_given_object()
 
-range_to_refl = np.sqrt((plat_pos[:,0] - refl_pos[0])**2 + (plat_pos[:,1] - refl_pos[1])**2 + (plat_pos[:,2] - refl_pos[2])**2)
-#plt.plot(range_to_refl, np.transpose(extract_time_stamp()))
+    range_to_refl = np.sqrt((plat_pos[:,0] - refl_pos[0])**2 + (plat_pos[:,1] - refl_pos[1])**2 + (plat_pos[:,2] - refl_pos[2])**2)
+    #plt.plot(range_to_refl, np.transpose(extract_time_stamp()))
 
-#plt.figure()
-#plt.imshow(20 * np.log10(np.abs(scan_data)),extent=[range_bins[0],range_bins[-1],(time_stamps[-1]-time_stamps[0])/1000,0],aspect = 'auto')
-#plt.colorbar()
-#plt.clim(60, 90)
-#plt.plot(range_to_refl, np.transpose(extract_time_stamp()-time_offset))
+    #plt.figure()
+    #plt.imshow(20 * np.log10(np.abs(scan_data)),extent=[range_bins[0],range_bins[-1],(time_stamps[-1]-time_stamps[0])/1000,0],aspect = 'auto')
+    #plt.colorbar()
+    #plt.clim(60, 90)
+    #plt.plot(range_to_refl, np.transpose(extract_time_stamp()-time_offset))
 
-center = extract_given_object()
+    center = extract_given_object()
 
 
-#interpolation (aligning radar data and position values)
-new_x_pos = np.interp((time_stamps-time_stamps[0])/1000,np.transpose(extract_time_stamp()-time_offset).flatten(),plat_pos[:,0])
-new_y_pos = np.interp((time_stamps-time_stamps[0])/1000,np.transpose(extract_time_stamp()-time_offset).flatten(),plat_pos[:,1])
-new_z_pos = np.interp((time_stamps-time_stamps[0])/1000,np.transpose(extract_time_stamp()-time_offset).flatten(),plat_pos[:,2])
-range_to_refl = np.sqrt((new_x_pos[:] - refl_pos[0])**2 + (new_y_pos[:] - refl_pos[1])**2 + (new_z_pos[:] - refl_pos[2])**2)
-#plt.figure()
-#plt.imshow(20 * np.log10(np.abs(scan_data)),extent=[range_bins[0]-range_offset,range_bins[-1]-range_offset,(time_stamps[-1]-time_stamps[0])/1000,0],aspect = 'auto')
-#plt.plot(range_to_refl, (time_stamps-time_stamps[0])/1000)
+    #interpolation (aligning radar data and position values)
+    new_x_pos = np.interp((time_stamps-time_stamps[0])/1000,np.transpose(extract_time_stamp()-time_offset).flatten(),plat_pos[:,0])
+    new_y_pos = np.interp((time_stamps-time_stamps[0])/1000,np.transpose(extract_time_stamp()-time_offset).flatten(),plat_pos[:,1])
+    new_z_pos = np.interp((time_stamps-time_stamps[0])/1000,np.transpose(extract_time_stamp()-time_offset).flatten(),plat_pos[:,2])
+    range_to_refl = np.sqrt((new_x_pos[:] - refl_pos[0])**2 + (new_y_pos[:] - refl_pos[1])**2 + (new_z_pos[:] - refl_pos[2])**2)
+    #plt.figure()
+    #plt.imshow(20 * np.log10(np.abs(scan_data)),extent=[range_bins[0]-range_offset,range_bins[-1]-range_offset,(time_stamps[-1]-time_stamps[0])/1000,0],aspect = 'auto')
+    #plt.plot(range_to_refl, (time_stamps-time_stamps[0])/1000)
 
-interp_plat_pos = list()
-for elements in range(len(new_x_pos)):
-    interp_plat_pos.append([new_x_pos[elements],new_z_pos[elements],new_y_pos[elements]])
-interp_plat_pos = np.array(interp_plat_pos).squeeze()
+    interp_plat_pos = list()
+    for elements in range(len(new_x_pos)):
+        interp_plat_pos.append([new_x_pos[elements],new_z_pos[elements],new_y_pos[elements]])
+    interp_plat_pos = np.array(interp_plat_pos).squeeze()
 
-x_vec = np.linspace(-meters,meters,size)
-y_vec = np.linspace(-meters,meters,size)
-scan_data_final = scan_data[eyeballing_start_time:eyeballing_end_time,:]
-interp_plat_pos_final = interp_plat_pos[eyeballing_start_time:eyeballing_end_time,:]
-x_vec_new = x_vec+center[1]
-y_vec_new = y_vec+center[2]
-sar_image = interp_approach(scan_data_final, range_bins-range_offset, interp_plat_pos_final, x_vec_new, y_vec_new)
-plt.figure()
-plt.imshow((np.abs(sar_image)),extent=[x_vec_new[0], x_vec_new[-1], y_vec_new[-1], y_vec_new[0]],aspect = 'auto')
+    x_vec = np.linspace(-meters,meters,size)
+    y_vec = np.linspace(-meters,meters,size)
+    scan_data_final = scan_data[eyeballing_start_time:eyeballing_end_time,:]
+    interp_plat_pos_final = interp_plat_pos[eyeballing_start_time:eyeballing_end_time,:]
+    x_vec_new = x_vec+center[1]
+    y_vec_new = y_vec+center[2]
+    sar_image = interp_approach(scan_data_final, range_bins-range_offset, interp_plat_pos_final, x_vec_new, y_vec_new)
+    #plt.figure()
+    #plt.imshow((np.abs(sar_image)),extent=[x_vec_new[0], x_vec_new[-1], y_vec_new[-1], y_vec_new[0]],aspect = 'auto')
+    return sar_image
+
+def get_entropy(magnitude_array):
+    entropy_sum = 0
+    minMag = magnitude_array[0][0] 
+    maxMag = magnitude_array[0][0]
+    for yy in range(len(magnitude_array)):
+        for xx in range(len(magnitude_array[yy])):
+            curr_mag = magnitude_array[yy][xx]
+            #print("max: " + str(maxMag) + "----- min: " + str(minMag))
+            if curr_mag > maxMag:
+                maxMag = curr_mag
+            if curr_mag < minMag:
+                minMag = curr_mag
+    
+    magDiff = np.abs(maxMag - minMag)
+    #print("magDiff = " + str(magDiff))
+    for yy in range(len(magnitude_array)):
+        for xx in range(len(magnitude_array[yy])):
+            curr_mag_final = np.abs(magnitude_array[yy][xx] - minMag)/magDiff
+            if (curr_mag_final != 0):
+                #print("currMagFinal: " + str(curr_mag_final))
+                entropy_sum += curr_mag_final*np.log2(curr_mag_final)
+    return -1*entropy_sum
+
+def testEntropy(deviation, step):
+    entropyArr = list()
+    combineArr = get_image_array(0, 100)
+    entropyArr.append(get_entropy(combineArr))
+    for ii in np.arange(-deviation, deviation, step):
+        combineArr = get_image_array(ii, 100)
+        entropyArr.append(get_entropy(combineArr))
+    
+    bestIndex = 0
+    bestEntropy = entropyArr[0]
+    for ii in range(len(entropyArr)):
+        if entropyArr[ii] < bestEntropy:
+            bestIndex = ii
+            bestEntropy = entropyArr[ii]
+            print("(index, entropy): (" + str(ii) + ", " + str(entropyArr[ii]) + ")")
+        
+    print("BEST (index, entropy): (" + str(bestIndex) + ", " + str(bestEntropy) + ")")
+    if bestIndex != 0:
+        print("BEST TIME SHIFT VALUE: " + str(-deviation+(bestIndex*step)))
+    else:
+        print("BEST TIME SHIFT VALUE: 0")
+    
+    finalShift = 0
+    if bestIndex != 0:
+        finalShift = -deviation+(bestIndex*step)
+    
+    return finalShift

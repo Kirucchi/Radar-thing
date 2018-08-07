@@ -4,15 +4,16 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas
 import math
+import pickle
 
-radar_data = unpack('UASSAR3_Saturday_pseudoflight_1')
-platform_position_data = 'uassar3_saturday_pseudoflight_1.csv'
-given_object = 'uassar3 triangle 3.csv'
-meters = 3
-eyeballing_start_time = 160
-eyeballing_end_time = 750
-time_offset = 12
-range_offset = 0.2
+radar_data = unpack('UASSAR3_Final_2')
+platform_position_data = 'uassar3_final_2.csv'
+given_object = 'Right_Ref_Refl-FinalEvent.csv'
+meters = 6
+eyeballing_start_time = 1540
+eyeballing_end_time = 3646
+time_offset = 14.8
+range_offset = 0.1
 
 def extract_platform_position():
     array = list()
@@ -231,6 +232,15 @@ def get_entropy(magnitude_array):
                 entropy_sum += curr_mag_final*np.log2(curr_mag_final)
     return -1*entropy_sum
 
+def create_img_submission_file(orig_sar_img_arr,proc_sar_img_arr,x_vec,y_vec):
+   submission = {}
+   submission['orig_sar_img'] = np.array(orig_sar_img_arr)
+   submission['proc_sar"img'] = np.array(proc_sar_img_arr)
+   submission['x_axis'] = x_vec
+   submission['y_axis'] = y_vec
+   with open('group_3_SAR_img.pkl', 'wb') as handle:
+       pickle.dump(submission, handle, protocol=pickle.HIGHEST_PROTOCOL)
+
 def testEntropy(deviation, step, resolution):
     entropyArr = list()
     combineArr = get_image_array(0, resolution)
@@ -262,5 +272,9 @@ def testEntropy(deviation, step, resolution):
     
     return finalShift
 
-shift_test = testEntropy(.5, .05, 100)
-plt.imshow(get_image_array(shift_test, 500))
+shift_test = testEntropy(.2, .02, 100)
+plt.figure()
+final_img = get_image_array(shift_test, 500)
+plt.imshow(np.absolute(final_img))
+plt.show()
+create_img_submission_file(final_img,final_img,,y_vec)

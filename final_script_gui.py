@@ -7,16 +7,17 @@ import math
 from warnings import warn
 
 class Script:
-    def __init__(self, param1, param2, param3, param4, param5, param6, param7, param8, param9):
+    def __init__(self, param1, param2, param3):
         self.radar_data = unpack(param1)
         self.platform_position_data = param2
         self.given_object = param3
-        self.meters = param4
-        self.size = param5
-        self.eyeballing_start_time = param6
-        self.eyeballing_end_time = param7
-        self.time_offset = param8
-        self.range_offset = param9
+        self.meters = 0
+        self.size = 0
+        self.eyeballing_start_time = 0
+        self.eyeballing_end_time = 0
+        self.time_offset = 0
+        self.range_offset = 0
+        
 
     def extract_platform_position(self):
         array = list()
@@ -148,7 +149,58 @@ class Script:
     def get_range(self, radar_xpos, radar_ypos, radar_zpos, img_x, img_y, img_z):
         return math.sqrt((radar_xpos - img_x)**2 + (radar_ypos - img_y)**2 + (radar_zpos - img_z)**2)
     
-    def main_func(self):
+    def get_graph(self):
+        time_stamps = self.radar_data['time_stamp']
+        scan_data = self.radar_data['scan_data']
+        range_bins = self.radar_data['range_bins']
+        
+        scan_data = np.array(scan_data).astype(float)
+        #optional rcs need button for this 
+        
+        for elements in range(len(scan_data)):
+            for elements2 in range(int(len(scan_data[0])*0.75)):
+                scan_data[elements][elements2] = scan_data[elements][elements2] * ((range_bins[elements2] - self.range_offset) **4.0)
+        
+        plat_pos = self.extract_platform_position()
+        
+        #plt.figure()
+        #plt.imshow(20 * np.log10(np.abs(scan_data)),extent=[range_bins[0],range_bins[-1],(time_stamps[-1]-time_stamps[0])/1000,0],aspect = 'auto')
+        
+        #plt.figure()
+        #plt.plot(plat_pos)
+        plat_pos = self.linear_interp_nan(self.extract_time_stamp(),plat_pos)[1]
+        refl_pos = self.extract_given_object()
+        
+        range_to_refl = np.sqrt((plat_pos[:,0] - refl_pos[0])**2 + (plat_pos[:,1] - refl_pos[1])**2 + (plat_pos[:,2] - refl_pos[2])**2)
+        #plt.plot(range_to_refl, np.transpose(extract_time_stamp()))
+        
+        #plt.figure()
+        #plt.imshow(20 * np.log10(np.abs(scan_data)),extent=[range_bins[0],range_bins[-1],(time_stamps[-1]-time_stamps[0])/1000,0],aspect = 'auto')
+        #plt.colorbar()
+        #plt.clim(60, 90)
+        #plt.plot(range_to_refl, np.transpose(extract_time_stamp()-time_offset))
+        
+        center = self.extract_given_object()
+        print(center)
+        
+        #interpolation (aligning radar data and position values)
+        new_x_pos = np.interp((time_stamps-time_stamps[0])/1000,np.transpose(self.extract_time_stamp()-self.time_offset).flatten(),plat_pos[:,0])
+        new_y_pos = np.interp((time_stamps-time_stamps[0])/1000,np.transpose(self.extract_time_stamp()-self.time_offset).flatten(),plat_pos[:,1])
+        new_z_pos = np.interp((time_stamps-time_stamps[0])/1000,np.transpose(self.extract_time_stamp()-self.time_offset).flatten(),plat_pos[:,2])
+        range_to_refl = np.sqrt((new_x_pos[:] - refl_pos[0])**2 + (new_y_pos[:] - refl_pos[1])**2 + (new_z_pos[:] - refl_pos[2])**2)
+        #plt.figure()
+        #plt.imshow(20 * np.log10(np.abs(scan_data)),extent=[range_bins[0]-self.range_offset,range_bins[-1]-self.range_offset,(time_stamps[-1]-time_stamps[0])/1000,0],aspect = 'auto')
+        return (range_to_refl, (time_stamps-time_stamps[0])/1000)
+    
+    def main_func(self, param4, param5, param6, param7, param8, param9):
+        
+        self.meters = param4
+        self.size = param5
+        self.eyeballing_start_time = param6
+        self.eyeballing_end_time = param7
+        self.time_offset = param8
+        self.range_offset = param9
+        
         time_stamps = self.radar_data['time_stamp']
         scan_data = self.radar_data['scan_data']
         range_bins = self.radar_data['range_bins']

@@ -8,15 +8,35 @@ import os
 import sys
 import argparse
 import pickle
-import math
 import matplotlib.pyplot as plt
 import numpy as np
 from pulson440_formats import CONFIG_MSG_FORMAT
-from pulson440_constants import SPEED_OF_LIGHT, T_BIN, DN_BIN
+from pulson440_constants import SPEED_OF_LIGHT, T_BIN
+from matplotlib.ticker import Formatter
 from matplotlib.figure import Figure
 
 # Constants
 DT_0 = 10 # Path delay through antennas (ns)
+
+class value_formatter(Formatter):
+    """
+    Tick label formatter.
+    """
+    
+    def __init__(self, values):
+        """
+        Add set of values to use in ticks.
+        """
+        self.values = values
+        
+    def __call__(self, x, pos=0):
+        """
+        Return formatted tick label.
+        """
+        ind = int(np.round(x))
+        if ind >= len(self.values) or ind < 0:
+            return ''
+        return '%3.1f  [%d]' % (self.values[ind], ind)
 
 def read_config_data(file_handle, legacy=False):
     """
@@ -58,15 +78,9 @@ def unpack(file, legacy=False):
         # Read configuration part of data
         config = read_config_data(f, legacy)
         
-        # Compute number of range bins in datas
+        # Compute range bins in datas
         scan_start_time = float(config['scan_start'])
-        scan_end_time = float(config['scan_stop'])
-        num_range_bins = DN_BIN * math.ceil((scan_end_time - scan_start_time) /
-                                           (T_BIN * 1000 * DN_BIN))
-        num_packets_per_scan = math.ceil(num_range_bins / 350)
         start_range = SPEED_OF_LIGHT * ((scan_start_time * 1e-12) - DT_0 * 1e-9) / 2
-        drange_bins = SPEED_OF_LIGHT * T_BIN * 1e-9 / 2
-        range_bins = start_range + drange_bins * np.arange(0, num_range_bins, 1)
         
         # Read data
         data = dict()
@@ -74,7 +88,7 @@ def unpack(file, legacy=False):
                'time_stamp': [],
                'packet_ind': [],
                'packet_pulse_ind': [],
-               'range_bins': range_bins,
+               'range_bins': [],
                'config': config}
         single_scan_data = []
         packet_count = 0
@@ -87,28 +101,32 @@ def unpack(file, legacy=False):
             packet = f.read(1452)
             if len(packet) < 1452:
                 break            
+            
+            # Get information from first packet about how scans are stored and 
+            # range bins collected
+            if packet_count == 0:
+                num_range_bins = np.frombuffer(packet[44:48], dtype='>u4')[0]
+                num_packets_per_scan = np.frombuffer(packet[50:52], dtype='>u2')[0]
+                drange_bins = SPEED_OF_LIGHT * T_BIN * 1e-9 / 2
+                range_bins = start_range + drange_bins * np.arange(0, num_range_bins, 1)
             packet_count += 1
             
-            # Packet index
-            data['packet_ind'].append(np.frombuffer(packet[48:50], dtype='u2'))
+            # Number of samples in current packet and packet index
+            num_samples = np.frombuffer(packet[42:44], dtype='>u2')[0]
+            data['packet_ind'].append(np.frombuffer(packet[48:50], dtype='>u2')[0])
             
             # Extract radar data samples from current packet; process last 
             # packet within a scan seperately to get all data
+            packet_data = np.frombuffer(packet[52:(52 + 4 * num_samples)], 
+                                               dtype='>i4')
+            single_scan_data.append(packet_data)
+            
             if packet_count % num_packets_per_scan == 0:
-                num_samples = num_range_bins % 350
-                packet_data = np.frombuffer(packet[52:(52 + 4 * num_samples)], 
-                                                   dtype='>i4')
-                single_scan_data.append(packet_data)
                 data['scan_data'].append(np.concatenate(single_scan_data))
                 data['time_stamp'].append(np.frombuffer(packet[8:12], 
-                    dtype='>u4'))
+                    dtype='>u4')[0])
                 single_scan_data = []
                 pulse_count += 1
-            else:
-                num_samples = 350
-                packet_data = np.frombuffer(packet[52:(52 + 4 * num_samples)], 
-                                                   dtype='>i4')
-                single_scan_data.append(packet_data)
             
         # Add last partial scan if present
         if single_scan_data:
@@ -122,8 +140,9 @@ def unpack(file, legacy=False):
         # (rows -> pulses, columns -> range bins)
         data['scan_data'] = np.stack(data['scan_data'])
         
-        # Finalize remaining entries in data
-        data['time_stamp']
+        # Finalize entries in data
+        data['time_stamp'] = np.asarray(data['time_stamp'])
+        data['range_bins'] = range_bins
 
         return data
 
@@ -160,37 +179,40 @@ def main(args):
     # Visualize RTI of unpacked data
     plt.ioff()
     if args.visualize:
+        range_formatter = value_formatter(data['range_bins'])
+        pulse_formatter = value_formatter((data['time_stamp'] - data['time_stamp'][0])/ 1000)
         
-        f = Figure(figsize=(6, 6), dpi=100)
-        a = f.add_subplot(111)
-        img = a.imshow(20*np.log10(np.abs(data['scan_data'])))
-        a.axes.set_aspect('auto')
-        a.set_title('Range-Time Intensity')
-        a.set_xlabel('Range Bins')
-        a.set_ylabel('Pulse Index')
+        f = Figure(figsize=(5, 5), dpi=100)
+        ax = f.add_subplot(111)
+        img = ax.imshow(20 * np.log10(np.abs(data['scan_data'])))
+        ax.set_aspect('auto')
+        ax.set_title('Range-Time Intensity')
+        ax.set_xlabel('Range (m) [Range Bin Number]')
+        ax.set_ylabel('Time Elapsed (s) [Pulse Number]')
+        ax.xaxis.set_major_formatter(range_formatter)
+        ax.yaxis.set_major_formatter(pulse_formatter)
         cbar = f.colorbar(img)
-        cbar.set_label('dB')
-        
-        return f
-    
-        """
-        rti_ax = plt.imshow(20 * np.log10(np.abs(data['scan_data'])))
-        rti_ax.axes.set_aspect('auto')
-        plt.title('Range-Time Intensity')
-        plt.xlabel('Range Bins')
-        plt.ylabel('Pulse Index')
-        cbar = plt.colorbar()
         cbar.ax.set_ylabel('dB')
         
+        return (f, ax, img)
         
+        """
+        ax.set_aspect('auto')
+        ax.set_title('Range-Time Intensity')
+        ax.set_xlabel('Range (m) [Range Bin Number]')
+        ax.set_ylabel('Time Elapsed (s) [Pulse Number]')
+        ax.xaxis.set_major_formatter(range_formatter)
+        ax.yaxis.set_major_formatter(pulse_formatter)
+        cbar = fig.colorbar(h_img)
+        cbar.ax.set_ylabel('dB')
         
         # Try to display to screen if available otherwise save to file
         try:
             plt.show()
         except:
             plt.savefig('%s.png' % os.path.splitext(args.file)[0])
+
         """
-        
 
 if __name__ == "__main__":
     """

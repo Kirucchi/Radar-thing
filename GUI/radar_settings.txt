@@ -1,6 +1,6 @@
 dT_0=10
-range_start=1
-range_stop=8
+range_start=2
+range_stop=12
 tx_gain_ind=63
 pii=11
 code_channel=0

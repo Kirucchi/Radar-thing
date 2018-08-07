@@ -5,9 +5,9 @@ import numpy as np
 import pandas
 import math
 
-radar_data = unpack('UASSAR3_Saturday_pseudoflight_1')
-platform_position_data = 'uassar3_saturday_pseudoflight_1.csv'
-given_object = 'uassar3 triangle 3.csv'
+radar_data = unpack('UASSAR3_Final_1')
+platform_position_data = 'uassar3_final_2.csv'
+given_object = 'Right_Ref_Refl-FinalEvent.csv'
 meters = 3
 eyeballing_start_time = 160
 eyeballing_end_time = 750
@@ -185,9 +185,9 @@ def get_image_array(time_shift, size):
     new_y_pos = np.interp((time_stamps-time_stamps[0])/1000,np.transpose(extract_time_stamp()-time_offset).flatten(),plat_pos[:,1])
     new_z_pos = np.interp((time_stamps-time_stamps[0])/1000,np.transpose(extract_time_stamp()-time_offset).flatten(),plat_pos[:,2])
     range_to_refl = np.sqrt((new_x_pos[:] - refl_pos[0])**2 + (new_y_pos[:] - refl_pos[1])**2 + (new_z_pos[:] - refl_pos[2])**2)
-    #plt.figure()
-    #plt.imshow(20 * np.log10(np.abs(scan_data)),extent=[range_bins[0]-range_offset,range_bins[-1]-range_offset,(time_stamps[-1]-time_stamps[0])/1000,0],aspect = 'auto')
-    #plt.plot(range_to_refl, (time_stamps-time_stamps[0])/1000)
+    plt.figure()
+    plt.imshow(20 * np.log10(np.abs(scan_data)),extent=[range_bins[0]-range_offset,range_bins[-1]-range_offset,(time_stamps[-1]-time_stamps[0])/1000,0],aspect = 'auto')
+    plt.plot(range_to_refl, (time_stamps-time_stamps[0])/1000)
 
     interp_plat_pos = list()
     for elements in range(len(new_x_pos)):
